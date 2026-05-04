@@ -1,49 +1,112 @@
 const express = require("express");
 const fs = require("fs");
+const crypto = require("crypto");
 
 const app = express();
 app.use(express.json());
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 const DB = "data.json";
 
-// ===== Load Data =====
-function loadData() {
-  if (!fs.existsSync(DB)) return [];
+// ===== ADMIN LOGIN =====
+const ADMIN_USER = "COBRA SERVER";
+const ADMIN_PASS = "SAMI9166";
+
+// ===== LOAD / SAVE =====
+function load(){
+  if(!fs.existsSync(DB)) return [];
   return JSON.parse(fs.readFileSync(DB));
 }
-
-// ===== Save Data =====
-function saveData(data) {
-  fs.writeFileSync(DB, JSON.stringify(data, null, 2));
+function save(data){
+  fs.writeFileSync(DB, JSON.stringify(data,null,2));
 }
 
-// ===== TEST ROUTE =====
-app.get("/", (req, res) => {
-  res.send("Cobra Panel Server Running ✅");
-});
+// ===== HASH DEVICE =====
+function hash(id){
+  return crypto.createHash("sha256").update(id).digest("hex");
+}
 
-// ===== BASIC GENERATE KEY (test) =====
-app.get("/test-generate", (req, res) => {
-  let data = loadData();
+// ===== ADMIN AUTH =====
+function auth(req,res,next){
+  if(req.headers.user === ADMIN_USER && req.headers.pass === ADMIN_PASS){
+    next();
+  } else {
+    res.status(401).send("Unauthorized");
+  }
+}
+
+// ===== GENERATE KEY =====
+app.post("/generate", auth,(req,res)=>{
+  const { days, deviceLimit, customKey } = req.body;
+
+  let data = load();
+
+  const key = customKey || "COBRA-" + Math.random().toString(36).substr(2,8);
 
   const newKey = {
-    key: "TEST-" + Math.random().toString(36).substr(2, 6),
-    created: Date.now()
+    key,
+    expiry: Date.now() + (days * 86400000),
+    deviceLimit,
+    devices: []
   };
 
   data.push(newKey);
-  saveData(data);
+  save(data);
 
-  res.json(newKey);
+  res.json({key});
 });
 
-// ===== VIEW ALL KEYS =====
-app.get("/keys", (req, res) => {
-  res.json(loadData());
+// ===== CONNECT (MOD ONLY) =====
+app.post("/connect",(req,res)=>{
+  const { key, deviceId } = req.body;
+
+  let data = load();
+  let user = data.find(u=>u.key === key);
+
+  if(!user) return res.json({status:"invalid"});
+  if(Date.now() > user.expiry) return res.json({status:"expired"});
+
+  const d = hash(deviceId);
+
+  if(!user.devices.includes(d)){
+    if(user.devices.length >= user.deviceLimit){
+      return res.json({status:"limit"});
+    }
+    user.devices.push(d);
+    save(data);
+  }
+
+  res.json({
+    status:"ok",
+    url:"https://cobraserver.ai-new.xyz/server"
+  });
 });
 
-// ===== START SERVER =====
-app.listen(PORT, () => {
-  console.log("Server running on port " + PORT);
+// ===== VIEW KEYS =====
+app.get("/keys", auth,(req,res)=>{
+  res.json(load());
 });
+
+// ===== DELETE =====
+app.post("/delete", auth,(req,res)=>{
+  save(load().filter(k=>k.key !== req.body.key));
+  res.json({deleted:true});
+});
+
+// ===== RESET DEVICE =====
+app.post("/reset", auth,(req,res)=>{
+  let data = load();
+  let u = data.find(x=>x.key === req.body.key);
+  if(u){
+    u.devices = [];
+    save(data);
+    return res.json({reset:true});
+  }
+  res.json({reset:false});
+});
+
+app.get("/",(req,res)=>{
+  res.send("COBRA PANEL RUNNING 🔥");
+});
+
+app.listen(PORT,()=>console.log("RUNNING"));
