@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>COBRA PANEL</title>
+<style>
+body{background:#0f172a;color:white;font-family:sans-serif;text-align:center}
+input,button{padding:10px;margin:5px;border:none;border-radius:8px}
+button{background:#22c55e;color:white}
+.card{background:#1e293b;margin:10px;padding:10px;border-radius:10px}
+</style>
+</head>
+
+<body>
+
+<h2>LOGIN</h2>
+<input id="user" placeholder="Username">
+<input id="pass" placeholder="Password">
+
+<h2>GENERATE KEY</h2>
+<input id="days" placeholder="Days">
+<input id="limit" placeholder="Device Limit">
+<input id="custom" placeholder="Custom Key">
+
+<button onclick="gen()">Generate</button>
+<button onclick="load()">Load Keys</button>
+
+<div id="list"></div>
+
+<script>
+const API="https://cobra-pannel.onrender.com";
+
+function head(){
+  return {
+    "Content-Type":"application/json",
+    "user":user.value,
+    "pass":pass.value
+  }
+}
+
+function gen(){
+  fetch(API+"/generate",{
+    method:"POST",
+    headers:head(),
+    body:JSON.stringify({
+      days:+days.value,
+      deviceLimit:+limit.value,
+      customKey:custom.value
+    })
+  })
+  .then(r=>r.json())
+  .then(d=>{
+    alert("KEY: "+d.key);
+    load();
+  });
+}
+
+function load(){
+  fetch(API+"/keys",{headers:head()})
+  .then(r=>r.json())
+  .then(data=>{
+    list.innerHTML=data.map(k=>`
+      <div class="card">
+      <b>${k.key}</b><br>
+      ${k.devices.length}/${k.deviceLimit}<br>
+      Expiry: ${new Date(k.expiry).toLocaleString()}<br>
+      <button onclick="resetKey('${k.key}')">Reset</button>
+      <button onclick="delKey('${k.key}')">Delete</button>
+      </div>
+    `).join("");
+  });
+}
+
+function delKey(key){
+  fetch(API+"/delete",{
+    method:"POST",
+    headers:head(),
+    body:JSON.stringify({key})
+  }).then(load);
+}
+
+function resetKey(key){
+  fetch(API+"/reset",{
+    method:"POST",
+    headers:head(),
+    body:JSON.stringify({key})
+  }).then(load);
+}
+</script>
+
+</body>
+</html>
