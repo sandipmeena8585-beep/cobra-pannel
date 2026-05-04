@@ -1,84 +1,137 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>COBRA PANEL</title>
 
 <style>
 body{
   margin:0;
   font-family:sans-serif;
-  background:#0f172a;
+  background:linear-gradient(135deg,#7c3aed,#ec4899);
   color:white;
-  text-align:center;
 }
 
-.container{padding:15px;}
+/* LOGIN */
+.login{
+  height:100vh;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+}
 
-input{
-  width:90%;
+.login input{
+  width:80%;
   padding:14px;
-  margin:6px;
+  margin:8px;
   border:none;
-  border-radius:10px;
+  border-radius:25px;
 }
 
-button{
-  width:90%;
+.login button{
+  width:80%;
+  padding:14px;
+  border:none;
+  border-radius:25px;
+  background:#ec4899;
+  color:white;
+}
+
+/* PANEL */
+.panel{display:none;}
+
+.top{
+  background:#111827;
+  padding:15px;
+  text-align:center;
+  font-size:18px;
+}
+
+.menu{
+  display:flex;
+  justify-content:space-around;
+  background:#1f2937;
+}
+
+.menu button{
+  flex:1;
   padding:12px;
-  margin:5px;
   border:none;
-  border-radius:12px;
-  font-size:15px;
+  background:none;
+  color:white;
 }
 
-.green{background:#22c55e;color:white;}
-.blue{background:#3b82f6;color:white;}
-.red{background:#ef4444;color:white;}
+.content{padding:10px;}
+
 .card{
   background:#1e293b;
-  margin:10px;
+  margin:8px;
   padding:10px;
   border-radius:10px;
 }
-.hidden{display:none;}
-</style>
-</head>
 
+.btn{
+  padding:10px;
+  border:none;
+  border-radius:10px;
+  margin:5px;
+}
+
+.green{background:#22c55e;}
+.red{background:#ef4444;}
+.blue{background:#3b82f6;}
+</style>
+
+</head>
 <body>
 
 <!-- LOGIN -->
-<div id="login" class="container">
-  <h2>🔐 LOGIN</h2>
+<div class="login" id="login">
+  <h2>COBRA PANEL</h2>
   <input id="user" placeholder="Username">
   <input id="pass" type="password" placeholder="Password">
-  <button class="green" onclick="login()">LOGIN</button>
+  <button onclick="login()">Sign In</button>
 </div>
 
 <!-- PANEL -->
-<div id="panel" class="container hidden">
+<div class="panel" id="panel">
 
-  <h2>⚡ KEY GENERATOR</h2>
+<div class="top">COBRA ADMIN</div>
 
-  <button class="green" onclick="gen(1/24,1)">1H</button>
-  <button class="green" onclick="gen(2/24,1)">2H</button>
-  <button class="green" onclick="gen(12/24,1)">12H</button>
+<div class="menu">
+  <button onclick="show('dash')">Dashboard</button>
+  <button onclick="show('gen')">Generate</button>
+</div>
 
-  <button class="green" onclick="gen(1,1)">1 DAY</button>
-  <button class="green" onclick="gen(7,1)">7 DAY</button>
-  <button class="green" onclick="gen(30,1)">30 DAY</button>
+<div class="content">
 
-  <h3>CUSTOM</h3>
+<!-- DASHBOARD -->
+<div id="dash">
+  <h3>📊 LIVE KEYS</h3>
+  <button class="btn blue" onclick="load()">Refresh</button>
+  <div id="list"></div>
+</div>
+
+<!-- GENERATE -->
+<div id="gen" style="display:none;">
+  <h3>🔑 GENERATE KEY</h3>
+
+  <button class="btn green" onclick="gen(1/24,1)">1H</button>
+  <button class="btn green" onclick="gen(12/24,1)">12H</button>
+  <button class="btn green" onclick="gen(1,1)">1 DAY</button>
+  <button class="btn green" onclick="gen(7,1)">7 DAY</button>
+  <button class="btn green" onclick="gen(30,1)">30 DAY</button>
+
+  <h4>Custom</h4>
   <input id="days" placeholder="Days">
   <input id="limit" placeholder="Device limit">
-  <input id="custom" placeholder="Custom Key">
+  <input id="custom" placeholder="Custom key">
 
-  <button class="green" onclick="customGen()">CREATE</button>
+  <button class="btn green" onclick="customGen()">CREATE</button>
+</div>
 
-  <h2>📊 LIVE KEYS</h2>
-  <button class="blue" onclick="load()">REFRESH</button>
-
-  <div id="list"></div>
+</div>
 
 </div>
 
@@ -89,8 +142,8 @@ const API="https://cobra-pannel.onrender.com";
 function head(){
   return {
     "Content-Type":"application/json",
-    "user":user.value,
-    "pass":pass.value
+    "user":document.getElementById("user").value,
+    "pass":document.getElementById("pass").value
   }
 }
 
@@ -99,12 +152,36 @@ function login(){
   fetch(API+"/keys",{headers:head()})
   .then(res=>{
     if(res.status===200){
-      loginBox.classList.add("hidden");
-      panel.classList.remove("hidden");
+      login.style.display="none";
+      panel.style.display="block";
       load();
     }else{
       alert("Login Failed");
     }
+  });
+}
+
+// MENU SWITCH
+function show(id){
+  document.getElementById("dash").style.display="none";
+  document.getElementById("gen").style.display="none";
+  document.getElementById(id).style.display="block";
+}
+
+// LOAD KEYS
+function load(){
+  fetch(API+"/keys",{headers:head()})
+  .then(r=>r.json())
+  .then(data=>{
+    list.innerHTML=data.map(k=>`
+      <div class="card">
+      <b>${k.key}</b><br>
+      ${k.devices.length}/${k.deviceLimit}<br>
+      Expiry: ${new Date(k.expiry).toLocaleString()}<br>
+      <button class="btn blue" onclick="resetKey('${k.key}')">Reset</button>
+      <button class="btn red" onclick="delKey('${k.key}')">Delete</button>
+      </div>
+    `).join("");
   });
 }
 
@@ -113,14 +190,12 @@ function gen(days,limit){
   fetch(API+"/generate",{
     method:"POST",
     headers:head(),
-    body:JSON.stringify({
-      days:days,
-      deviceLimit:limit
-    })
+    body:JSON.stringify({days,deviceLimit:limit})
   })
   .then(r=>r.json())
   .then(d=>{
-    copy(d.key);
+    navigator.clipboard.writeText(d.key);
+    alert("KEY: "+d.key);
     load();
   });
 }
@@ -138,26 +213,9 @@ function customGen(){
   })
   .then(r=>r.json())
   .then(d=>{
-    copy(d.key);
+    navigator.clipboard.writeText(d.key);
+    alert("KEY: "+d.key);
     load();
-  });
-}
-
-// LOAD KEYS
-function load(){
-  fetch(API+"/keys",{headers:head()})
-  .then(r=>r.json())
-  .then(data=>{
-    list.innerHTML = data.map(k=>`
-      <div class="card">
-        <b>${k.key}</b><br>
-        Devices: ${k.devices.length}/${k.deviceLimit}<br>
-        Expiry: ${new Date(k.expiry).toLocaleString()}<br>
-
-        <button class="blue" onclick="resetKey('${k.key}')">RESET</button>
-        <button class="red" onclick="delKey('${k.key}')">DELETE</button>
-      </div>
-    `).join("");
   });
 }
 
@@ -177,12 +235,6 @@ function resetKey(key){
     headers:head(),
     body:JSON.stringify({key})
   }).then(load);
-}
-
-// COPY
-function copy(k){
-  navigator.clipboard.writeText(k);
-  alert("KEY: "+k);
 }
 
 </script>
