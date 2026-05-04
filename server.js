@@ -6,14 +6,16 @@ const path = require("path");
 const app = express();
 app.use(express.json());
 
-// ===== CORS =====
+// ===== CORS FIX =====
 app.use((req,res,next)=>{
   res.header("Access-Control-Allow-Origin","*");
   res.header("Access-Control-Allow-Headers","Content-Type,user,pass");
+  res.header("Access-Control-Allow-Methods","GET,POST,OPTIONS");
+  if(req.method === "OPTIONS") return res.sendStatus(200);
   next();
 });
 
-// ===== STATIC PANEL =====
+// ===== STATIC =====
 app.use(express.static(__dirname));
 
 const PORT = process.env.PORT || 3000;
@@ -23,22 +25,25 @@ const DB = "data.json";
 const ADMIN_USER = "COBRA SERVER";
 const ADMIN_PASS = "SAMI9166";
 
-// ===== LOAD / SAVE =====
+// ===== LOAD =====
 function load(){
   try{
     if(!fs.existsSync(DB)) return [];
-    return JSON.parse(fs.readFileSync(DB));
+    const raw = fs.readFileSync(DB);
+    return raw.length ? JSON.parse(raw) : [];
   }catch{
     return [];
   }
 }
+
+// ===== SAVE =====
 function save(data){
   fs.writeFileSync(DB, JSON.stringify(data,null,2));
 }
 
-// ===== HASH DEVICE =====
+// ===== HASH =====
 function hash(id){
-  return crypto.createHash("sha256").update(id).digest("hex");
+  return crypto.createHash("sha256").update(String(id)).digest("hex");
 }
 
 // ===== AUTH =====
@@ -49,22 +54,29 @@ function auth(req,res,next){
   if(user === ADMIN_USER && pass === ADMIN_PASS){
     next();
   } else {
-    res.status(401).json({error:"Unauthorized"});
+    return res.status(401).json({error:"Unauthorized"});
   }
 }
 
-// ===== ROOT (open panel) =====
+// ===== ROOT =====
 app.get("/", (req,res)=>{
   res.sendFile(path.join(__dirname,"admin.html"));
 });
 
-// ===== GENERATE KEY =====
+// ===== GENERATE =====
 app.post("/generate", auth,(req,res)=>{
-  const { days, deviceLimit, customKey } = req.body;
+  let { days, deviceLimit, customKey } = req.body;
+
+  days = Number(days);
+  deviceLimit = Number(deviceLimit) || 1;
+
+  if(!days || days <= 0){
+    return res.json({error:"invalid_days"});
+  }
 
   let data = load();
 
-  const key = customKey && customKey.trim() !== ""
+  const key = customKey && customKey.trim()
     ? customKey.trim()
     : "COBRA-" + crypto.randomBytes(4).toString("hex").toUpperCase();
 
@@ -109,21 +121,28 @@ app.post("/connect",(req,res)=>{
   });
 });
 
-// ===== VIEW KEYS =====
+// ===== KEYS =====
 app.get("/keys", auth,(req,res)=>{
   res.json(load());
 });
 
 // ===== DELETE =====
 app.post("/delete", auth,(req,res)=>{
-  save(load().filter(k=>k.key !== req.body.key));
+  const key = req.body.key;
+  if(!key) return res.json({deleted:false});
+
+  let data = load().filter(k=>k.key !== key);
+  save(data);
+
   res.json({deleted:true});
 });
 
 // ===== RESET =====
 app.post("/reset", auth,(req,res)=>{
+  const key = req.body.key;
+
   let data = load();
-  let u = data.find(x=>x.key === req.body.key);
+  let u = data.find(x=>x.key === key);
 
   if(u){
     u.devices = [];
@@ -136,5 +155,5 @@ app.post("/reset", auth,(req,res)=>{
 
 // ===== START =====
 app.listen(PORT,()=>{
-  console.log("🔥 COBRA PANEL RUNNING");
+  console.log("🔥 COBRA PANEL RUNNING ON PORT", PORT);
 });
