@@ -6,7 +6,14 @@ const path = require("path");
 const app = express();
 app.use(express.json());
 
-// ===== STATIC FILE (ADMIN PANEL) =====
+// ===== CORS =====
+app.use((req,res,next)=>{
+  res.header("Access-Control-Allow-Origin","*");
+  res.header("Access-Control-Allow-Headers","Content-Type,user,pass");
+  next();
+});
+
+// ===== STATIC PANEL =====
 app.use(express.static(__dirname));
 
 const PORT = process.env.PORT || 3000;
@@ -18,8 +25,12 @@ const ADMIN_PASS = "SAMI9166";
 
 // ===== LOAD / SAVE =====
 function load(){
-  if(!fs.existsSync(DB)) return [];
-  return JSON.parse(fs.readFileSync(DB));
+  try{
+    if(!fs.existsSync(DB)) return [];
+    return JSON.parse(fs.readFileSync(DB));
+  }catch{
+    return [];
+  }
 }
 
 function save(data){
@@ -31,16 +42,19 @@ function hash(id){
   return crypto.createHash("sha256").update(id).digest("hex");
 }
 
-// ===== ADMIN AUTH =====
+// ===== AUTH =====
 function auth(req,res,next){
-  if(req.headers.user === ADMIN_USER && req.headers.pass === ADMIN_PASS){
+  const user = (req.headers.user || "").trim();
+  const pass = (req.headers.pass || "").trim();
+
+  if(user === ADMIN_USER && pass === ADMIN_PASS){
     next();
   } else {
-    res.status(401).send("Unauthorized");
+    res.status(401).json({error:"Unauthorized"});
   }
 }
 
-// ===== ROOT → ADMIN PANEL =====
+// ===== ROOT =====
 app.get("/", (req,res)=>{
   res.sendFile(path.join(__dirname,"admin.html"));
 });
@@ -51,7 +65,9 @@ app.post("/generate", auth,(req,res)=>{
 
   let data = load();
 
-  const key = customKey || "COBRA-" + Math.random().toString(36).substr(2,8);
+  const key = customKey && customKey.trim() !== ""
+    ? customKey.trim()
+    : "COBRA-" + crypto.randomBytes(4).toString("hex").toUpperCase();
 
   const newKey = {
     key,
@@ -66,17 +82,19 @@ app.post("/generate", auth,(req,res)=>{
   res.json({key});
 });
 
-// ===== CONNECT (MOD USE) =====
+// ===== CONNECT (MAIN) =====
 app.post("/connect",(req,res)=>{
   const { key, deviceId } = req.body;
 
+  if(!key) return res.json({status:"invalid"});
+
   let data = load();
-  let user = data.find(u=>u.key === key);
+  let user = data.find(u=>u.key === key.trim());
 
   if(!user) return res.json({status:"invalid"});
   if(Date.now() > user.expiry) return res.json({status:"expired"});
 
-  const d = hash(deviceId);
+  const d = hash(deviceId || "unknown");
 
   if(!user.devices.includes(d)){
     if(user.devices.length >= user.deviceLimit){
