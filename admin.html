@@ -10,6 +10,13 @@ margin:0;
 font-family:Arial, sans-serif;
 background:#0f172a;
 color:#fff;
+letter-spacing:0.5px;
+}
+
+h2,h3{
+font-weight:900;
+text-transform:uppercase;
+letter-spacing:1px;
 }
 
 /* LOGIN */
@@ -20,14 +27,13 @@ flex-direction:column;
 justify-content:center;
 align-items:center;
 }
-.login h2{font-weight:bold;}
 .login input{
 width:80%;
 padding:14px;
 margin:8px;
 border:none;
 border-radius:12px;
-font-size:16px;
+font-weight:bold;
 }
 .login button{
 width:80%;
@@ -35,7 +41,6 @@ padding:14px;
 border:none;
 border-radius:12px;
 background:#22c55e;
-color:white;
 font-weight:bold;
 }
 
@@ -59,7 +64,7 @@ border:none;
 background:#1f2937;
 color:white;
 border-radius:10px;
-font-weight:bold;
+font-weight:900;
 }
 
 .menuBtn{
@@ -67,7 +72,6 @@ display:none;
 position:fixed;
 top:10px;
 left:10px;
-z-index:1000;
 background:#111827;
 color:white;
 padding:8px;
@@ -81,36 +85,36 @@ border-radius:8px;
 background:#111827;
 padding:15px;
 text-align:center;
-font-weight:bold;
+font-weight:900;
 }
 
-.content{
-padding:10px;
-margin-top:10px;
-}
+.content{padding:10px;}
 
 .card{
 background:#1e293b;
 padding:12px;
 margin:8px;
 border-radius:12px;
-font-size:14px;
+font-weight:bold;
 }
 
+/* INPUT */
 input{
 width:95%;
 padding:12px;
 margin:5px;
 border:none;
 border-radius:10px;
+font-weight:bold;
 }
 
+/* BUTTON */
 button{
 padding:10px;
 border:none;
 border-radius:10px;
 margin:5px;
-font-weight:bold;
+font-weight:900;
 }
 
 .blue{background:#3b82f6;}
@@ -130,17 +134,13 @@ border-radius:15px 15px 0 0;
 z-index:999;
 }
 
-.plans{
-display:grid;
-grid-template-columns:repeat(2,1fr);
-gap:10px;
-}
 .plan{
 padding:12px;
 border-radius:10px;
 background:#22c55e;
 text-align:center;
-font-weight:bold;
+font-weight:900;
+margin:5px 0;
 }
 </style>
 </head>
@@ -149,9 +149,9 @@ font-weight:bold;
 
 <!-- LOGIN -->
 <div class="login" id="loginBox">
-<h2>COBRA PANEL</h2>
-<input id="user" placeholder="Username">
-<input id="pass" type="password" placeholder="Password">
+<h2>𝐂𝐎𝐁𝐑𝐀 𝐏𝐀𝐍𝐄𝐋</h2>
+<input id="user" placeholder="USERNAME">
+<input id="pass" type="password" placeholder="PASSWORD">
 <button onclick="login()">LOGIN</button>
 </div>
 
@@ -160,6 +160,7 @@ font-weight:bold;
 <button onclick="show('dash')">DASHBOARD</button>
 <button onclick="show('gen')">GENERATE KEY</button>
 <button onclick="show('custom')">CUSTOM KEY</button>
+<button onclick="logout()" class="red">LOGOUT</button>
 </div>
 
 <button class="menuBtn" id="menuBtn" onclick="toggleMenu()">☰</button>
@@ -167,7 +168,7 @@ font-weight:bold;
 <!-- PANEL -->
 <div class="panel" id="panel">
 
-<div class="top">COBRA ADMIN</div>
+<div class="top">𝐂𝐎𝐁𝐑𝐀 𝐀𝐃𝐌𝐈𝐍</div>
 
 <div class="content">
 
@@ -183,7 +184,7 @@ font-weight:bold;
 <button class="green" onclick="openPopup()">SELECT PLAN</button>
 <div id="selectedPlanBox" class="card">PLAN: NONE</div>
 
-<input id="device" placeholder="Device limit (default 1)">
+<input id="device" placeholder="DEVICE LIMIT">
 <button class="green" onclick="genFinal()">GENERATE</button>
 
 <div id="genOutput"></div>
@@ -195,8 +196,8 @@ font-weight:bold;
 <button class="green" onclick="openPopup()">SELECT PLAN</button>
 <div id="selectedPlanBox2" class="card">PLAN: NONE</div>
 
-<input id="cdevice" placeholder="Device limit">
-<input id="ckey" placeholder="Enter custom key">
+<input id="cdevice" placeholder="DEVICE LIMIT">
+<input id="ckey" placeholder="ENTER CUSTOM KEY">
 
 <button class="green" onclick="customFinal()">GENERATE</button>
 
@@ -206,52 +207,50 @@ font-weight:bold;
 </div>
 </div>
 
-<!-- POPUP -->
+<!-- POPUP (UPDATED LINE LIST) -->
 <div id="planPopup">
+<h3>SELECT PLAN</h3>
 
-<h3>Select Plan</h3>
-
-<div class="plans">
+<div style="max-height:300px;overflow:auto;">
 <div class="plan" onclick="selectPlan(1/24)">1H</div>
-<div class="plan" onclick="selectPlan(2/24)">2H</div>
+<div class="plan" onclick="selectPlan(3/24)">3H</div>
+<div class="plan" onclick="selectPlan(5/24)">5H</div>
 <div class="plan" onclick="selectPlan(12/24)">12H</div>
-<div class="plan" onclick="selectPlan(1)">1D</div>
-<div class="plan" onclick="selectPlan(7)">7D</div>
-<div class="plan" onclick="selectPlan(30)">30D</div>
+
+<div class="plan" onclick="selectPlan(1)">1DAY</div>
+<div class="plan" onclick="selectPlan(3)">3DAY</div>
+<div class="plan" onclick="selectPlan(7)">7DAY</div>
+<div class="plan" onclick="selectPlan(15)">15DAY</div>
+<div class="plan" onclick="selectPlan(30)">30DAY</div>
+<div class="plan" onclick="selectPlan(60)">60DAY</div>
 </div>
 
 <button onclick="closePopup()" class="red" style="width:100%">CANCEL</button>
-
 </div>
 
 <script>
-
 const API="https://cobra-pannel.onrender.com";
 let PLAN=null;
 
-// LOGIN
 function login(){
-const u=document.getElementById("user").value.trim();
-const p=document.getElementById("pass").value.trim();
-
-fetch(API+"/keys",{headers:{user:u,pass:p}})
+fetch(API+"/keys",{headers:{
+user:user.value.trim(),
+pass:pass.value.trim()
+}})
 .then(r=>{
 if(r.status===200){
-document.getElementById("loginBox").style.display="none";
-document.getElementById("panel").style.display="block";
-document.getElementById("menuBtn").style.display="block";
+loginBox.style.display="none";
+panel.style.display="block";
+menuBtn.style.display="block";
 load();
-}else alert("Wrong Login");
+}else alert("WRONG LOGIN");
 });
 }
 
-// MENU
 function toggleMenu(){
-let s=document.getElementById("sidebar");
-s.style.left = s.style.left==="0px" ? "-220px" : "0px";
+sidebar.style.left = sidebar.style.left==="0px" ? "-220px" : "0px";
 }
 
-// SWITCH
 function show(id){
 dash.style.display="none";
 gen.style.display="none";
@@ -260,14 +259,20 @@ document.getElementById(id).style.display="block";
 toggleMenu();
 }
 
-// POPUP
+function logout(){
+panel.style.display="none";
+loginBox.style.display="flex";
+sidebar.style.left="-220px";
+menuBtn.style.display="none";
+PLAN=null;
+}
+
 function openPopup(){planPopup.style.display="block";}
 function closePopup(){planPopup.style.display="none";}
 
-// SELECT PLAN
 function selectPlan(p){
 PLAN=p;
-let txt=p<1?(p*24)+"H":p+"D";
+let txt=p<1?(p*24)+"H":p+"DAY";
 
 if(gen.style.display!=="none") selectedPlanBox.innerText="PLAN: "+txt;
 if(custom.style.display!=="none") selectedPlanBox2.innerText="PLAN: "+txt;
@@ -275,83 +280,37 @@ if(custom.style.display!=="none") selectedPlanBox2.innerText="PLAN: "+txt;
 closePopup();
 }
 
-// LOAD
 function load(){
-fetch(API+"/keys",{headers:{
-user:user.value.trim(),
-pass:pass.value.trim()
-}})
+fetch(API+"/keys",{headers:{user:user.value.trim(),pass:pass.value.trim()}})
 .then(r=>r.json())
 .then(data=>{
 list.innerHTML=data.map(k=>{
 let exp=new Date(k.expiry);
 let status=new Date()>exp?"EXPIRED":"ACTIVE";
-
-return `<div class="card">
-<b>${k.key}</b><br>
-${k.devices.length}/${k.deviceLimit}<br>
-${exp.toLocaleString()}<br>
-${status}<br>
-
-<button onclick="copyKey('${k.key}')">COPY</button>
-<button class="blue" onclick="resetKey('${k.key}')">RESET</button>
-<button class="red" onclick="delKey('${k.key}')">DELETE</button>
-</div>`;
+return `<div class="card">${k.key}<br>${k.devices.length}/${k.deviceLimit}<br>${exp.toLocaleString()}<br>${status}</div>`;
 }).join("");
 });
 }
 
-// GENERATE
 function genFinal(){
-if(!PLAN){alert("Select Plan");return;}
-let d=+device.value||1;
-
-fetch(API+"/generate",{
-method:"POST",
+if(!PLAN){alert("SELECT PLAN");return;}
+fetch(API+"/generate",{method:"POST",
 headers:{user:user.value.trim(),pass:pass.value.trim(),"Content-Type":"application/json"},
-body:JSON.stringify({days:PLAN,deviceLimit:d})
+body:JSON.stringify({days:PLAN,deviceLimit:+device.value||1})
 })
 .then(r=>r.json())
-.then(d=>{
-genOutput.innerHTML=`<div class="card">${d.key}</div>`;
-});
+.then(d=>genOutput.innerHTML=`<div class="card">${d.key}</div>`);
 }
 
-// CUSTOM
 function customFinal(){
-if(!PLAN){alert("Select Plan");return;}
-
-fetch(API+"/generate",{
-method:"POST",
+if(!PLAN){alert("SELECT PLAN");return;}
+fetch(API+"/generate",{method:"POST",
 headers:{user:user.value.trim(),pass:pass.value.trim(),"Content-Type":"application/json"},
-body:JSON.stringify({
-days:PLAN,
-deviceLimit:+cdevice.value||1,
-customKey:ckey.value
-})
+body:JSON.stringify({days:PLAN,deviceLimit:+cdevice.value||1,customKey:ckey.value})
 })
 .then(r=>r.json())
-.then(d=>{
-customOutput.innerHTML=`<div class="card">${d.key}</div>`;
-});
+.then(d=>customOutput.innerHTML=`<div class="card">${d.key}</div>`);
 }
-
-// DELETE
-function delKey(k){
-fetch(API+"/delete",{method:"POST",headers:{user:user.value.trim(),pass:pass.value.trim(),"Content-Type":"application/json"},body:JSON.stringify({key:k})}).then(load);
-}
-
-// RESET
-function resetKey(k){
-fetch(API+"/reset",{method:"POST",headers:{user:user.value.trim(),pass:pass.value.trim(),"Content-Type":"application/json"},body:JSON.stringify({key:k})}).then(load);
-}
-
-// COPY
-function copyKey(k){
-navigator.clipboard.writeText(k);
-alert("Copied");
-}
-
 </script>
 
 </body>
