@@ -5,91 +5,81 @@
 <title>COBRA PANEL</title>
 
 <style>
-body{margin:0;font-family:sans-serif;background:#0f172a;color:white}
+body{margin:0;font-family:sans-serif;background:linear-gradient(135deg,#7c3aed,#ec4899);color:white}
 
 /* LOGIN */
 .login{
 height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;
 }
 .login input{
-width:80%;padding:12px;margin:6px;border:none;border-radius:20px;
+width:80%;padding:14px;margin:8px;border:none;border-radius:25px;
 }
 .login button{
-width:80%;padding:12px;border:none;border-radius:20px;background:#22c55e;color:white;
+width:80%;padding:14px;border:none;border-radius:25px;background:#ec4899;color:white;
 }
 
-/* MENU */
-.menu{
+/* SIDEBAR */
+.sidebar{
 position:fixed;left:-220px;top:0;width:220px;height:100%;
-background:#111827;padding:10px;transition:0.3s;
+background:#111827;padding:10px;transition:0.3s;z-index:999;
 }
-.menu button{
+.sidebar button{
 width:100%;padding:12px;margin:5px;border:none;background:#1f2937;color:white;border-radius:8px;
 }
 
-.menu.show{left:0;}
-
-.top{
-background:#111827;padding:12px;text-align:center;
+.menuBtn{
+position:fixed;top:10px;left:10px;z-index:1000;
+background:#111827;color:white;padding:8px;border:none;border-radius:8px;
 }
 
-.open{
-position:absolute;left:10px;top:10px;
-}
+/* PANEL */
+.panel{display:none;}
+.top{background:#111827;padding:15px;text-align:center;font-size:18px;}
 
-/* CONTENT */
-.content{padding:10px;margin-top:50px}
+.content{padding:10px;margin-top:50px;}
 
-.card{
-background:#1e293b;padding:10px;margin:8px;border-radius:10px;
-}
+.card{background:#1e293b;margin:8px;padding:12px;border-radius:12px;}
 
-/* PLAN BOX */
-.plans{
-display:grid;grid-template-columns:repeat(2,1fr);gap:8px;
-}
-.plan{
-background:#22c55e;padding:10px;border-radius:8px;text-align:center;
-}
+.plans{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+.plan{padding:12px;border-radius:10px;background:#22c55e;text-align:center;}
 
 input{
-width:95%;padding:10px;margin:5px;border:none;border-radius:8px;
+width:95%;padding:10px;margin:5px;border:none;border-radius:10px;
 }
 
 button{
-padding:10px;border:none;border-radius:8px;margin:5px;
+padding:10px;border:none;border-radius:10px;margin:5px;
 }
 
 .blue{background:#3b82f6;}
 .red{background:#ef4444;}
 .green{background:#22c55e;}
 </style>
-</head>
 
+</head>
 <body>
 
 <!-- LOGIN -->
-<div id="login" class="login">
-<h3>COBRA PANEL</h3>
+<div class="login" id="login">
+<h2>COBRA PANEL</h2>
 <input id="user" placeholder="Username">
 <input id="pass" type="password" placeholder="Password">
 <button onclick="login()">LOGIN</button>
 </div>
 
-<!-- MENU -->
-<div id="menu" class="menu">
+<!-- SIDEBAR -->
+<div id="sidebar" class="sidebar">
 <button onclick="show('dash')">Dashboard</button>
 <button onclick="show('gen')">Generate Key</button>
 <button onclick="show('custom')">Custom Key</button>
 </div>
 
-<!-- PANEL -->
-<div id="panel" style="display:none">
+<button class="menuBtn" onclick="toggleMenu()">☰</button>
 
-<div class="top">
-<button class="open" onclick="toggle()">☰</button>
-COBRA ADMIN
-</div>
+<!-- PANEL -->
+<div class="panel" id="panel">
+
+<div class="top">COBRA ADMIN</div>
 
 <div class="content">
 
@@ -100,8 +90,8 @@ COBRA ADMIN
 <div id="list"></div>
 </div>
 
-<!-- GENERATE RANDOM -->
-<div id="gen" style="display:none">
+<!-- GENERATE -->
+<div id="gen" style="display:none;">
 <h3>🔑 RANDOM KEY</h3>
 
 <div class="plans">
@@ -113,14 +103,14 @@ COBRA ADMIN
 <div class="plan" onclick="setPlan(30)">30D</div>
 </div>
 
-<input id="device" placeholder="Device limit (1 default)">
-<button class="green" onclick="gen()">GENERATE</button>
+<input id="device" placeholder="Device limit (default 1)">
+<button class="green" onclick="genFinal()">GENERATE KEY</button>
 
-<div id="out"></div>
+<div id="genOutput"></div>
 </div>
 
 <!-- CUSTOM -->
-<div id="custom" style="display:none">
+<div id="custom" style="display:none;">
 <h3>✍️ CUSTOM KEY</h3>
 
 <div class="plans">
@@ -132,9 +122,9 @@ COBRA ADMIN
 <input id="cdevice" placeholder="Device limit">
 <input id="ckey" placeholder="Enter custom key">
 
-<button class="green" onclick="customGen()">GENERATE</button>
+<button class="green" onclick="customFinal()">GENERATE</button>
 
-<div id="cout"></div>
+<div id="customOutput"></div>
 </div>
 
 </div>
@@ -149,13 +139,13 @@ let PLAN=1;
 function login(){
 fetch(API+"/keys",{
 headers:{
-"user":user.value.trim(),
-"pass":pass.value.trim()
+"user":document.getElementById("user").value.trim(),
+"pass":document.getElementById("pass").value.trim()
 }})
 .then(r=>{
 if(r.status===200){
-login.style.display="none";
-panel.style.display="block";
+document.getElementById("login").style.display="none";
+document.getElementById("panel").style.display="block";
 load();
 }else{
 alert("Login Failed");
@@ -164,42 +154,45 @@ alert("Login Failed");
 }
 
 // MENU
-function toggle(){
-menu.classList.toggle("show");
+function toggleMenu(){
+let s=document.getElementById("sidebar");
+s.style.left = s.style.left==="0px" ? "-220px" : "0px";
 }
 
 // SWITCH
 function show(id){
-dash.style.display="none";
-gen.style.display="none";
-custom.style.display="none";
+document.getElementById("dash").style.display="none";
+document.getElementById("gen").style.display="none";
+document.getElementById("custom").style.display="none";
 document.getElementById(id).style.display="block";
-menu.classList.remove("show");
+toggleMenu();
 }
 
 // PLAN
-function setPlan(d){
-PLAN=d;
+function setPlan(p){
+PLAN=p;
 alert("Plan Selected");
 }
 
-// LOAD KEYS
+// LOAD
 function load(){
 fetch(API+"/keys",{headers:{
-"user":user.value.trim(),
-"pass":pass.value.trim()
+"user":document.getElementById("user").value.trim(),
+"pass":document.getElementById("pass").value.trim()
 }})
 .then(r=>r.json())
 .then(data=>{
-list.innerHTML=data.map(k=>{
+document.getElementById("list").innerHTML=data.map(k=>{
 let exp=new Date(k.expiry);
-let status=new Date()>exp?"❌":"✅";
+let status=new Date()>exp?"❌ EXPIRED":"✅ ACTIVE";
+
 return `<div class="card">
 <b>${k.key}</b><br>
-${k.devices.length}/${k.deviceLimit}<br>
-${exp.toLocaleString()}<br>
-${status}<br>
-<button onclick="copy('${k.key}')">COPY</button>
+Devices: ${k.devices.length}/${k.deviceLimit}<br>
+Expiry: ${exp.toLocaleString()}<br>
+Status: ${status}<br>
+
+<button onclick="copyKey('${k.key}')">COPY</button>
 <button class="blue" onclick="resetKey('${k.key}')">Reset</button>
 <button class="red" onclick="delKey('${k.key}')">Delete</button>
 </div>`;
@@ -207,42 +200,47 @@ ${status}<br>
 });
 }
 
-// RANDOM GEN
-function gen(){
-let d=+device.value||1;
+// RANDOM GENERATE
+function genFinal(){
+let d=+document.getElementById("device").value || 1;
+
 fetch(API+"/generate",{
 method:"POST",
 headers:{
-"user":user.value.trim(),
-"pass":pass.value.trim(),
+"user":document.getElementById("user").value.trim(),
+"pass":document.getElementById("pass").value.trim(),
 "Content-Type":"application/json"
 },
 body:JSON.stringify({days:PLAN,deviceLimit:d})
 })
 .then(r=>r.json())
 .then(d=>{
-out.innerHTML=`<div class="card">${d.key}<br><button onclick="copy('${d.key}')">COPY</button></div>`;
+document.getElementById("genOutput").innerHTML=
+`<div class="card">${d.key}<br>
+<button onclick="copyKey('${d.key}')">COPY</button></div>`;
 });
 }
 
-// CUSTOM GEN
-function customGen(){
+// CUSTOM GENERATE
+function customFinal(){
 fetch(API+"/generate",{
 method:"POST",
 headers:{
-"user":user.value.trim(),
-"pass":pass.value.trim(),
+"user":document.getElementById("user").value.trim(),
+"pass":document.getElementById("pass").value.trim(),
 "Content-Type":"application/json"
 },
 body:JSON.stringify({
 days:PLAN,
-deviceLimit:+cdevice.value||1,
-customKey:ckey.value
+deviceLimit:+document.getElementById("cdevice").value || 1,
+customKey:document.getElementById("ckey").value
 })
 })
 .then(r=>r.json())
 .then(d=>{
-cout.innerHTML=`<div class="card">${d.key}<br><button onclick="copy('${d.key}')">COPY</button></div>`;
+document.getElementById("customOutput").innerHTML=
+`<div class="card">${d.key}<br>
+<button onclick="copyKey('${d.key}')">COPY</button></div>`;
 });
 }
 
@@ -251,8 +249,8 @@ function delKey(k){
 fetch(API+"/delete",{
 method:"POST",
 headers:{
-"user":user.value.trim(),
-"pass":pass.value.trim(),
+"user":document.getElementById("user").value.trim(),
+"pass":document.getElementById("pass").value.trim(),
 "Content-Type":"application/json"
 },
 body:JSON.stringify({key:k})
@@ -264,8 +262,8 @@ function resetKey(k){
 fetch(API+"/reset",{
 method:"POST",
 headers:{
-"user":user.value.trim(),
-"pass":pass.value.trim(),
+"user":document.getElementById("user").value.trim(),
+"pass":document.getElementById("pass").value.trim(),
 "Content-Type":"application/json"
 },
 body:JSON.stringify({key:k})
@@ -273,7 +271,7 @@ body:JSON.stringify({key:k})
 }
 
 // COPY
-function copy(k){
+function copyKey(k){
 navigator.clipboard.writeText(k);
 alert("Copied");
 }
