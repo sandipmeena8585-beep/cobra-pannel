@@ -32,7 +32,6 @@ function load(){
     return [];
   }
 }
-
 function save(data){
   fs.writeFileSync(DB, JSON.stringify(data,null,2));
 }
@@ -54,7 +53,7 @@ function auth(req,res,next){
   }
 }
 
-// ===== ROOT =====
+// ===== ROOT (open panel) =====
 app.get("/", (req,res)=>{
   res.sendFile(path.join(__dirname,"admin.html"));
 });
@@ -82,7 +81,7 @@ app.post("/generate", auth,(req,res)=>{
   res.json({key});
 });
 
-// ===== CONNECT (MAIN) =====
+// ===== CONNECT =====
 app.post("/connect",(req,res)=>{
   const { key, deviceId } = req.body;
 
@@ -121,7 +120,7 @@ app.post("/delete", auth,(req,res)=>{
   res.json({deleted:true});
 });
 
-// ===== RESET DEVICE =====
+// ===== RESET =====
 app.post("/reset", auth,(req,res)=>{
   let data = load();
   let u = data.find(x=>x.key === req.body.key);
