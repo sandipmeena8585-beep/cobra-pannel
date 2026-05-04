@@ -1,32 +1,89 @@
 <!DOCTYPE html>
 <html>
 <head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>COBRA PANEL</title>
+
 <style>
-body{background:#0f172a;color:white;font-family:sans-serif;text-align:center}
-input,button{padding:10px;margin:5px;border:none;border-radius:8px}
-button{background:#22c55e;color:white}
-.card{background:#1e293b;margin:10px;padding:10px;border-radius:10px}
+body{
+  margin:0;
+  font-family:sans-serif;
+  background:#0f172a;
+  color:white;
+  text-align:center;
+}
+
+.container{padding:15px;}
+
+input{
+  width:90%;
+  padding:14px;
+  margin:6px;
+  border:none;
+  border-radius:10px;
+}
+
+button{
+  width:90%;
+  padding:12px;
+  margin:5px;
+  border:none;
+  border-radius:12px;
+  font-size:15px;
+}
+
+.green{background:#22c55e;color:white;}
+.blue{background:#3b82f6;color:white;}
+.red{background:#ef4444;color:white;}
+.card{
+  background:#1e293b;
+  margin:10px;
+  padding:10px;
+  border-radius:10px;
+}
+.hidden{display:none;}
 </style>
 </head>
 
 <body>
 
-<h2>LOGIN</h2>
-<input id="user" placeholder="Username">
-<input id="pass" placeholder="Password">
+<!-- LOGIN -->
+<div id="login" class="container">
+  <h2>🔐 LOGIN</h2>
+  <input id="user" placeholder="Username">
+  <input id="pass" type="password" placeholder="Password">
+  <button class="green" onclick="login()">LOGIN</button>
+</div>
 
-<h2>GENERATE KEY</h2>
-<input id="days" placeholder="Days">
-<input id="limit" placeholder="Device Limit">
-<input id="custom" placeholder="Custom Key">
+<!-- PANEL -->
+<div id="panel" class="container hidden">
 
-<button onclick="gen()">Generate</button>
-<button onclick="load()">Load Keys</button>
+  <h2>⚡ KEY GENERATOR</h2>
 
-<div id="list"></div>
+  <button class="green" onclick="gen(1/24,1)">1H</button>
+  <button class="green" onclick="gen(2/24,1)">2H</button>
+  <button class="green" onclick="gen(12/24,1)">12H</button>
+
+  <button class="green" onclick="gen(1,1)">1 DAY</button>
+  <button class="green" onclick="gen(7,1)">7 DAY</button>
+  <button class="green" onclick="gen(30,1)">30 DAY</button>
+
+  <h3>CUSTOM</h3>
+  <input id="days" placeholder="Days">
+  <input id="limit" placeholder="Device limit">
+  <input id="custom" placeholder="Custom Key">
+
+  <button class="green" onclick="customGen()">CREATE</button>
+
+  <h2>📊 LIVE KEYS</h2>
+  <button class="blue" onclick="load()">REFRESH</button>
+
+  <div id="list"></div>
+
+</div>
 
 <script>
+
 const API="https://cobra-pannel.onrender.com";
 
 function head(){
@@ -37,7 +94,39 @@ function head(){
   }
 }
 
-function gen(){
+// LOGIN
+function login(){
+  fetch(API+"/keys",{headers:head()})
+  .then(res=>{
+    if(res.status===200){
+      loginBox.classList.add("hidden");
+      panel.classList.remove("hidden");
+      load();
+    }else{
+      alert("Login Failed");
+    }
+  });
+}
+
+// GENERATE
+function gen(days,limit){
+  fetch(API+"/generate",{
+    method:"POST",
+    headers:head(),
+    body:JSON.stringify({
+      days:days,
+      deviceLimit:limit
+    })
+  })
+  .then(r=>r.json())
+  .then(d=>{
+    copy(d.key);
+    load();
+  });
+}
+
+// CUSTOM
+function customGen(){
   fetch(API+"/generate",{
     method:"POST",
     headers:head(),
@@ -49,27 +138,30 @@ function gen(){
   })
   .then(r=>r.json())
   .then(d=>{
-    alert("KEY: "+d.key);
+    copy(d.key);
     load();
   });
 }
 
+// LOAD KEYS
 function load(){
   fetch(API+"/keys",{headers:head()})
   .then(r=>r.json())
   .then(data=>{
-    list.innerHTML=data.map(k=>`
+    list.innerHTML = data.map(k=>`
       <div class="card">
-      <b>${k.key}</b><br>
-      ${k.devices.length}/${k.deviceLimit}<br>
-      Expiry: ${new Date(k.expiry).toLocaleString()}<br>
-      <button onclick="resetKey('${k.key}')">Reset</button>
-      <button onclick="delKey('${k.key}')">Delete</button>
+        <b>${k.key}</b><br>
+        Devices: ${k.devices.length}/${k.deviceLimit}<br>
+        Expiry: ${new Date(k.expiry).toLocaleString()}<br>
+
+        <button class="blue" onclick="resetKey('${k.key}')">RESET</button>
+        <button class="red" onclick="delKey('${k.key}')">DELETE</button>
       </div>
     `).join("");
   });
 }
 
+// DELETE
 function delKey(key){
   fetch(API+"/delete",{
     method:"POST",
@@ -78,6 +170,7 @@ function delKey(key){
   }).then(load);
 }
 
+// RESET
 function resetKey(key){
   fetch(API+"/reset",{
     method:"POST",
@@ -85,6 +178,13 @@ function resetKey(key){
     body:JSON.stringify({key})
   }).then(load);
 }
+
+// COPY
+function copy(k){
+  navigator.clipboard.writeText(k);
+  alert("KEY: "+k);
+}
+
 </script>
 
 </body>
