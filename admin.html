@@ -13,11 +13,6 @@ color:#fff;
 overflow-x:hidden;
 }
 
-h2,h3{
-font-weight:900;
-text-transform:uppercase;
-}
-
 /* LOGIN */
 .login{
 height:100vh;
@@ -32,7 +27,6 @@ padding:14px;
 margin:8px;
 border:none;
 border-radius:12px;
-font-weight:bold;
 }
 .login button{
 width:80%;
@@ -40,7 +34,6 @@ padding:14px;
 border:none;
 border-radius:12px;
 background:#22c55e;
-font-weight:bold;
 }
 
 /* SIDEBAR */
@@ -53,18 +46,19 @@ height:100%;
 background:#111827;
 padding:10px;
 transition:0.3s;
+z-index:999;
 }
 .sidebar button{
 width:100%;
 padding:12px;
 margin:5px;
-border:none;
 background:#1f2937;
 color:white;
+border:none;
 border-radius:10px;
-font-weight:bold;
 }
 
+/* MENU BTN */
 .menuBtn{
 display:none;
 position:fixed;
@@ -75,6 +69,19 @@ color:white;
 padding:8px;
 border:none;
 border-radius:8px;
+z-index:1000;
+}
+
+/* OVERLAY */
+.overlay{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.4);
+display:none;
+z-index:998;
 }
 
 /* PANEL */
@@ -83,7 +90,6 @@ border-radius:8px;
 background:#111827;
 padding:15px;
 text-align:center;
-font-weight:bold;
 }
 
 .content{padding:10px;}
@@ -101,55 +107,27 @@ padding:10px;
 border:none;
 border-radius:10px;
 margin:5px;
-font-weight:bold;
 }
 
 .green{background:#22c55e;}
 .blue{background:#3b82f6;}
 .red{background:#ef4444;}
 
-/* INPUT */
-input{
-width:95%;
-padding:12px;
-margin:5px;
-border:none;
-border-radius:10px;
-font-weight:bold;
-}
-
-/* POPUP */
-#planPopup{
+/* DROPDOWN PLAN */
+.planList{
 display:none;
-position:fixed;
-bottom:0;
-width:100%;
 background:#1e293b;
-padding:15px;
-border-radius:15px 15px 0 0;
+border-radius:10px;
+margin:5px;
+overflow:hidden;
 }
 
-/* PLAN BOX */
-.planBox{
-background:#111827;
-padding:12px;
-border-radius:12px;
-margin:6px 0;
-display:flex;
-justify-content:space-between;
-align-items:center;
-font-weight:bold;
-border:2px solid transparent;
-transition:0.2s;
+.planItem{
+padding:10px;
+border-bottom:1px solid #333;
 }
-
-.planBox.active{
-background:linear-gradient(135deg,#4f46e5,#9333ea);
-border:2px solid #a78bfa;
-}
-
-.tick{display:none;}
-.planBox.active .tick{display:block;}
+.planItem:last-child{border:none;}
+.planItem:active{background:#334155;}
 </style>
 </head>
 
@@ -157,7 +135,7 @@ border:2px solid #a78bfa;
 
 <!-- LOGIN -->
 <div class="login" id="loginBox">
-<h2>𝐂𝐎𝐁𝐑𝐀 𝐏𝐀𝐍𝐄𝐋</h2>
+<h2>COBRA PANEL</h2>
 <input id="user" placeholder="USERNAME">
 <input id="pass" type="password" placeholder="PASSWORD">
 <button onclick="login()">LOGIN</button>
@@ -171,6 +149,8 @@ border:2px solid #a78bfa;
 <button onclick="logout()" class="red">LOGOUT</button>
 </div>
 
+<div id="overlay" class="overlay" onclick="closeMenu()"></div>
+
 <button class="menuBtn" id="menuBtn" onclick="toggleMenu()">☰</button>
 
 <!-- PANEL -->
@@ -183,144 +163,94 @@ border:2px solid #a78bfa;
 <!-- DASH -->
 <div id="dash">
 <h3>LIVE KEYS</h3>
-<button class="blue" onclick="load()">REFRESH</button>
-<div id="list"></div>
 </div>
 
 <!-- GENERATE -->
 <div id="gen" style="display:none;">
 <h3>RANDOM KEY</h3>
 
-<button class="green" onclick="openPopup()">SELECT PLAN</button>
-<div id="selectedPlanBox" class="card">PLAN: NONE</div>
+<button class="green" onclick="togglePlan()">SELECT PLAN</button>
 
-<input id="device" placeholder="DEVICE LIMIT">
-<button class="green" onclick="genFinal()">GENERATE</button>
+<div id="planList" class="planList">
+<div class="planItem" onclick="selectPlan(1/24)">1H</div>
+<div class="planItem" onclick="selectPlan(3/24)">3H</div>
+<div class="planItem" onclick="selectPlan(5/24)">5H</div>
+<div class="planItem" onclick="selectPlan(12/24)">12H</div>
 
-<div id="genOutput"></div>
+<div class="planItem" onclick="selectPlan(1)">1DAY</div>
+<div class="planItem" onclick="selectPlan(3)">3DAY</div>
+<div class="planItem" onclick="selectPlan(7)">7DAY</div>
+<div class="planItem" onclick="selectPlan(15)">15DAY</div>
+<div class="planItem" onclick="selectPlan(30)">30DAY</div>
+<div class="planItem" onclick="selectPlan(60)">60DAY</div>
 </div>
 
-<!-- CUSTOM -->
-<div id="custom" style="display:none;">
-<h3>CUSTOM KEY</h3>
+<div id="selectedPlan" class="card">PLAN: NONE</div>
 
-<button class="green" onclick="openPopup()">SELECT PLAN</button>
-<div id="selectedPlanBox2" class="card">PLAN: NONE</div>
-
-<input id="cdevice" placeholder="DEVICE LIMIT">
-<input id="ckey" placeholder="ENTER CUSTOM KEY">
-
-<button class="green" onclick="customFinal()">GENERATE</button>
-
-<div id="customOutput"></div>
 </div>
 
 </div>
-</div>
-
-<!-- POPUP -->
-<div id="planPopup">
-<h3>SELECT PLAN</h3>
-
-<div style="max-height:300px;overflow:auto;">
-
-<div class="planBox" onclick="selectPlanUI(this,1/24)">1H <span class="tick">✔</span></div>
-<div class="planBox" onclick="selectPlanUI(this,3/24)">3H <span class="tick">✔</span></div>
-<div class="planBox" onclick="selectPlanUI(this,5/24)">5H <span class="tick">✔</span></div>
-<div class="planBox" onclick="selectPlanUI(this,12/24)">12H <span class="tick">✔</span></div>
-
-<div class="planBox" onclick="selectPlanUI(this,1)">1DAY <span class="tick">✔</span></div>
-<div class="planBox" onclick="selectPlanUI(this,3)">3DAY <span class="tick">✔</span></div>
-<div class="planBox" onclick="selectPlanUI(this,7)">7DAY <span class="tick">✔</span></div>
-<div class="planBox" onclick="selectPlanUI(this,15)">15DAY <span class="tick">✔</span></div>
-<div class="planBox" onclick="selectPlanUI(this,30)">30DAY <span class="tick">✔</span></div>
-<div class="planBox" onclick="selectPlanUI(this,60)">60DAY <span class="tick">✔</span></div>
-
-</div>
-
-<button onclick="closePopup()" class="red" style="width:100%">DONE</button>
 </div>
 
 <script>
-const API="https://cobra-pannel.onrender.com";
+
 let PLAN=null;
 
+// LOGIN (frontend only)
 function login(){
-fetch(API+"/keys",{headers:{user:user.value.trim(),pass:pass.value.trim()}})
-.then(r=>{
-if(r.status===200){
 loginBox.style.display="none";
 panel.style.display="block";
 menuBtn.style.display="block";
-load();
-}else alert("WRONG LOGIN");
-});
 }
 
+// MENU
 function toggleMenu(){
-sidebar.style.left = sidebar.style.left==="0px" ? "-240px" : "0px";
+if(sidebar.style.left==="0px"){
+closeMenu();
+}else{
+sidebar.style.left="0px";
+overlay.style.display="block";
+}
 }
 
+function closeMenu(){
+sidebar.style.left="-240px";
+overlay.style.display="none";
+}
+
+// SWITCH
 function show(id){
 dash.style.display="none";
 gen.style.display="none";
-custom.style.display="none";
+
 document.getElementById(id).style.display="block";
-toggleMenu();
+closeMenu();
 }
 
+// LOGOUT
 function logout(){
 panel.style.display="none";
 loginBox.style.display="flex";
-sidebar.style.left="-240px";
 menuBtn.style.display="none";
-PLAN=null;
+closeMenu();
 }
 
-function openPopup(){planPopup.style.display="block";}
-function closePopup(){planPopup.style.display="none";}
-
-function selectPlanUI(el,p){
-PLAN=p;
-document.querySelectorAll(".planBox").forEach(x=>x.classList.remove("active"));
-el.classList.add("active");
-
-let txt=p<1?(p*24)+"H":p+"DAY";
-if(gen.style.display!=="none") selectedPlanBox.innerText="PLAN: "+txt;
-if(custom.style.display!=="none") selectedPlanBox2.innerText="PLAN: "+txt;
+// PLAN DROPDOWN
+function togglePlan(){
+planList.style.display = planList.style.display==="block"?"none":"block";
 }
 
-function load(){
-fetch(API+"/keys",{headers:{user:user.value.trim(),pass:pass.value.trim()}})
-.then(r=>r.json())
-.then(data=>{
-list.innerHTML=data.map(k=>{
-let exp=new Date(k.expiry);
-let status=new Date()>exp?"EXPIRED":"ACTIVE";
-return `<div class="card">${k.key}<br>${k.devices.length}/${k.deviceLimit}<br>${exp.toLocaleString()}<br>${status}</div>`;
-}).join("");
-});
+// SELECT PLAN
+function selectPlan(p){
+PLAN = p;
+
+let txt = p<1?(p*24)+"H":p+"DAY";
+selectedPlan.innerText="PLAN: "+txt;
+
+// auto hide
+planList.style.display="none";
 }
 
-function genFinal(){
-if(!PLAN){alert("SELECT PLAN");return;}
-fetch(API+"/generate",{method:"POST",
-headers:{user:user.value.trim(),pass:pass.value.trim(),"Content-Type":"application/json"},
-body:JSON.stringify({days:PLAN,deviceLimit:+device.value||1})
-})
-.then(r=>r.json())
-.then(d=>genOutput.innerHTML=`<div class="card">${d.key}</div>`);
-}
-
-function customFinal(){
-if(!PLAN){alert("SELECT PLAN");return;}
-fetch(API+"/generate",{method:"POST",
-headers:{user:user.value.trim(),pass:pass.value.trim(),"Content-Type":"application/json"},
-body:JSON.stringify({days:PLAN,deviceLimit:+cdevice.value||1,customKey:ckey.value})
-})
-.then(r=>r.json())
-.then(d=>customOutput.innerHTML=`<div class="card">${d.key}</div>`);
-}
 </script>
 
 </body>
