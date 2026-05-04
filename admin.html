@@ -1,34 +1,117 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>COBRA PANEL</title>
 
 <style>
-body{margin:0;font-family:sans-serif;background:linear-gradient(135deg,#7c3aed,#ec4899);color:white;}
-.login{height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;}
-.login input{width:80%;padding:14px;margin:8px;border:none;border-radius:25px;}
-.login button{width:80%;padding:14px;border:none;border-radius:25px;background:#ec4899;color:white;}
+body{
+  margin:0;
+  font-family:sans-serif;
+  background:linear-gradient(135deg,#7c3aed,#ec4899);
+  color:white;
+}
+
+/* LOGIN */
+.login{
+  height:100vh;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+}
+
+.login input{
+  width:80%;
+  padding:14px;
+  margin:8px;
+  border:none;
+  border-radius:25px;
+}
+
+.login button{
+  width:80%;
+  padding:14px;
+  border:none;
+  border-radius:25px;
+  background:#ec4899;
+  color:white;
+}
+
+/* PANEL */
 .panel{display:none;}
-.top{background:#111827;padding:15px;text-align:center;}
-.menu{display:flex;background:#1f2937;}
-.menu button{flex:1;padding:12px;border:none;background:none;color:white;}
+
+.top{
+  background:#111827;
+  padding:15px;
+  text-align:center;
+  font-size:18px;
+}
+
+.menu{
+  display:flex;
+  background:#1f2937;
+}
+
+.menu button{
+  flex:1;
+  padding:12px;
+  border:none;
+  background:none;
+  color:white;
+}
+
 .content{padding:10px;}
-.card{background:#1e293b;margin:8px;padding:10px;border-radius:10px;}
-.btn{padding:10px;border:none;border-radius:10px;margin:5px;}
-.green{background:#22c55e;} .red{background:#ef4444;} .blue{background:#3b82f6;}
+
+.card{
+  background:#1e293b;
+  margin:8px;
+  padding:12px;
+  border-radius:12px;
+}
+
+/* PLAN BOX */
+.plans{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:10px;
+}
+
+.plan{
+  padding:12px;
+  border-radius:10px;
+  background:#22c55e;
+  text-align:center;
+}
+
+.plan:active{
+  transform:scale(0.95);
+}
+
+/* BUTTONS */
+.btn{
+  padding:10px;
+  border:none;
+  border-radius:10px;
+  margin:5px;
+}
+
+.blue{background:#3b82f6;}
+.red{background:#ef4444;}
 </style>
 
 </head>
 <body>
 
+<!-- LOGIN -->
 <div class="login" id="login">
   <h2>COBRA PANEL</h2>
   <input id="user" placeholder="Username">
   <input id="pass" type="password" placeholder="Password">
-  <button onclick="login()">Sign In</button>
+  <button onclick="login()">LOGIN</button>
 </div>
 
+<!-- PANEL -->
 <div class="panel" id="panel">
 
 <div class="top">COBRA ADMIN</div>
@@ -40,28 +123,47 @@ body{margin:0;font-family:sans-serif;background:linear-gradient(135deg,#7c3aed,#
 
 <div class="content">
 
+<!-- DASHBOARD -->
 <div id="dash">
   <h3>📊 LIVE KEYS</h3>
   <button class="btn blue" onclick="load()">Refresh</button>
   <div id="list"></div>
 </div>
 
+<!-- GENERATE -->
 <div id="gen" style="display:none;">
-  <h3>🔑 GENERATE</h3>
-  <button class="btn green" onclick="gen(1,1)">1 DAY</button>
-  <button class="btn green" onclick="gen(7,1)">7 DAY</button>
+  <h3>🔑 SELECT PLAN</h3>
 
+  <div class="plans">
+
+    <div class="plan" onclick="gen(1/24,1)">1 HOUR</div>
+    <div class="plan" onclick="gen(2/24,1)">2 HOUR</div>
+    <div class="plan" onclick="gen(3/24,1)">3 HOUR</div>
+    <div class="plan" onclick="gen(5/24,1)">5 HOUR</div>
+    <div class="plan" onclick="gen(12/24,1)">12 HOUR</div>
+
+    <div class="plan" onclick="gen(1,1)">1 DAY</div>
+    <div class="plan" onclick="gen(3,1)">3 DAY</div>
+    <div class="plan" onclick="gen(7,1)">7 DAY</div>
+    <div class="plan" onclick="gen(15,1)">15 DAY</div>
+    <div class="plan" onclick="gen(30,1)">30 DAY</div>
+    <div class="plan" onclick="gen(60,1)">60 DAY</div>
+
+  </div>
+
+  <h4>Custom</h4>
   <input id="days" placeholder="Days">
   <input id="limit" placeholder="Device limit">
   <input id="custom" placeholder="Custom key">
 
-  <button class="btn green" onclick="customGen()">CREATE</button>
+  <button onclick="customGen()">CREATE</button>
 </div>
 
 </div>
 </div>
 
 <script>
+
 const API="https://cobra-pannel.onrender.com";
 
 function head(){
@@ -72,6 +174,7 @@ function head(){
   }
 }
 
+// LOGIN
 function login(){
   fetch(API+"/keys",{headers:head()})
   .then(res=>{
@@ -85,27 +188,41 @@ function login(){
   });
 }
 
+// SWITCH
 function show(id){
   document.getElementById("dash").style.display="none";
   document.getElementById("gen").style.display="none";
   document.getElementById(id).style.display="block";
 }
 
+// LOAD KEYS (EXPIRY FIXED)
 function load(){
   fetch(API+"/keys",{headers:head()})
   .then(r=>r.json())
   .then(data=>{
-    document.getElementById("list").innerHTML=data.map(k=>`
+    document.getElementById("list").innerHTML=data.map(k=>{
+
+      let exp = new Date(k.expiry);
+      let now = new Date();
+
+      let status = now > exp ? "❌ EXPIRED" : "✅ ACTIVE";
+
+      return `
       <div class="card">
       <b>${k.key}</b><br>
-      ${k.devices.length}/${k.deviceLimit}<br>
+      Devices: ${k.devices.length}/${k.deviceLimit}<br>
+      Expiry: ${exp.toLocaleString()}<br>
+      Status: ${status}<br>
+
       <button class="btn blue" onclick="resetKey('${k.key}')">Reset</button>
       <button class="btn red" onclick="delKey('${k.key}')">Delete</button>
       </div>
-    `).join("");
+      `;
+    }).join("");
   });
 }
 
+// GENERATE
 function gen(days,limit){
   fetch(API+"/generate",{
     method:"POST",
@@ -114,11 +231,13 @@ function gen(days,limit){
   })
   .then(r=>r.json())
   .then(d=>{
+    navigator.clipboard.writeText(d.key);
     alert("KEY: "+d.key);
     load();
   });
 }
 
+// CUSTOM
 function customGen(){
   fetch(API+"/generate",{
     method:"POST",
@@ -131,11 +250,13 @@ function customGen(){
   })
   .then(r=>r.json())
   .then(d=>{
+    navigator.clipboard.writeText(d.key);
     alert("KEY: "+d.key);
     load();
   });
 }
 
+// DELETE
 function delKey(key){
   fetch(API+"/delete",{
     method:"POST",
@@ -144,6 +265,7 @@ function delKey(key){
   }).then(load);
 }
 
+// RESET
 function resetKey(key){
   fetch(API+"/reset",{
     method:"POST",
@@ -151,6 +273,7 @@ function resetKey(key){
     body:JSON.stringify({key})
   }).then(load);
 }
+
 </script>
 
 </body>
