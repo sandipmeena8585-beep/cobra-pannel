@@ -7,16 +7,15 @@
 <style>
 body{
 margin:0;
-font-family:Arial, sans-serif;
+font-family:Arial;
 background:#0f172a;
 color:#fff;
-letter-spacing:0.5px;
+overflow-x:hidden;
 }
 
 h2,h3{
 font-weight:900;
 text-transform:uppercase;
-letter-spacing:1px;
 }
 
 /* LOGIN */
@@ -47,14 +46,13 @@ font-weight:bold;
 /* SIDEBAR */
 .sidebar{
 position:fixed;
-left:-220px;
+left:-240px;
 top:0;
 width:220px;
 height:100%;
 background:#111827;
 padding:10px;
 transition:0.3s;
-z-index:999;
 }
 .sidebar button{
 width:100%;
@@ -64,7 +62,7 @@ border:none;
 background:#1f2937;
 color:white;
 border-radius:10px;
-font-weight:900;
+font-weight:bold;
 }
 
 .menuBtn{
@@ -85,7 +83,7 @@ border-radius:8px;
 background:#111827;
 padding:15px;
 text-align:center;
-font-weight:900;
+font-weight:bold;
 }
 
 .content{padding:10px;}
@@ -95,8 +93,20 @@ background:#1e293b;
 padding:12px;
 margin:8px;
 border-radius:12px;
+}
+
+/* BUTTON */
+button{
+padding:10px;
+border:none;
+border-radius:10px;
+margin:5px;
 font-weight:bold;
 }
+
+.green{background:#22c55e;}
+.blue{background:#3b82f6;}
+.red{background:#ef4444;}
 
 /* INPUT */
 input{
@@ -108,40 +118,38 @@ border-radius:10px;
 font-weight:bold;
 }
 
-/* BUTTON */
-button{
-padding:10px;
-border:none;
-border-radius:10px;
-margin:5px;
-font-weight:900;
-}
-
-.blue{background:#3b82f6;}
-.red{background:#ef4444;}
-.green{background:#22c55e;}
-
 /* POPUP */
 #planPopup{
 display:none;
 position:fixed;
 bottom:0;
-left:0;
 width:100%;
 background:#1e293b;
 padding:15px;
 border-radius:15px 15px 0 0;
-z-index:999;
 }
 
-.plan{
+/* PLAN BOX */
+.planBox{
+background:#111827;
 padding:12px;
-border-radius:10px;
-background:#22c55e;
-text-align:center;
-font-weight:900;
-margin:5px 0;
+border-radius:12px;
+margin:6px 0;
+display:flex;
+justify-content:space-between;
+align-items:center;
+font-weight:bold;
+border:2px solid transparent;
+transition:0.2s;
 }
+
+.planBox.active{
+background:linear-gradient(135deg,#4f46e5,#9333ea);
+border:2px solid #a78bfa;
+}
+
+.tick{display:none;}
+.planBox.active .tick{display:block;}
 </style>
 </head>
 
@@ -168,16 +176,18 @@ margin:5px 0;
 <!-- PANEL -->
 <div class="panel" id="panel">
 
-<div class="top">𝐂𝐎𝐁𝐑𝐀 𝐀𝐃𝐌𝐈𝐍</div>
+<div class="top">COBRA ADMIN</div>
 
 <div class="content">
 
+<!-- DASH -->
 <div id="dash">
 <h3>LIVE KEYS</h3>
 <button class="blue" onclick="load()">REFRESH</button>
 <div id="list"></div>
 </div>
 
+<!-- GENERATE -->
 <div id="gen" style="display:none;">
 <h3>RANDOM KEY</h3>
 
@@ -190,6 +200,7 @@ margin:5px 0;
 <div id="genOutput"></div>
 </div>
 
+<!-- CUSTOM -->
 <div id="custom" style="display:none;">
 <h3>CUSTOM KEY</h3>
 
@@ -207,25 +218,27 @@ margin:5px 0;
 </div>
 </div>
 
-<!-- POPUP (UPDATED LINE LIST) -->
+<!-- POPUP -->
 <div id="planPopup">
 <h3>SELECT PLAN</h3>
 
 <div style="max-height:300px;overflow:auto;">
-<div class="plan" onclick="selectPlan(1/24)">1H</div>
-<div class="plan" onclick="selectPlan(3/24)">3H</div>
-<div class="plan" onclick="selectPlan(5/24)">5H</div>
-<div class="plan" onclick="selectPlan(12/24)">12H</div>
 
-<div class="plan" onclick="selectPlan(1)">1DAY</div>
-<div class="plan" onclick="selectPlan(3)">3DAY</div>
-<div class="plan" onclick="selectPlan(7)">7DAY</div>
-<div class="plan" onclick="selectPlan(15)">15DAY</div>
-<div class="plan" onclick="selectPlan(30)">30DAY</div>
-<div class="plan" onclick="selectPlan(60)">60DAY</div>
+<div class="planBox" onclick="selectPlanUI(this,1/24)">1H <span class="tick">✔</span></div>
+<div class="planBox" onclick="selectPlanUI(this,3/24)">3H <span class="tick">✔</span></div>
+<div class="planBox" onclick="selectPlanUI(this,5/24)">5H <span class="tick">✔</span></div>
+<div class="planBox" onclick="selectPlanUI(this,12/24)">12H <span class="tick">✔</span></div>
+
+<div class="planBox" onclick="selectPlanUI(this,1)">1DAY <span class="tick">✔</span></div>
+<div class="planBox" onclick="selectPlanUI(this,3)">3DAY <span class="tick">✔</span></div>
+<div class="planBox" onclick="selectPlanUI(this,7)">7DAY <span class="tick">✔</span></div>
+<div class="planBox" onclick="selectPlanUI(this,15)">15DAY <span class="tick">✔</span></div>
+<div class="planBox" onclick="selectPlanUI(this,30)">30DAY <span class="tick">✔</span></div>
+<div class="planBox" onclick="selectPlanUI(this,60)">60DAY <span class="tick">✔</span></div>
+
 </div>
 
-<button onclick="closePopup()" class="red" style="width:100%">CANCEL</button>
+<button onclick="closePopup()" class="red" style="width:100%">DONE</button>
 </div>
 
 <script>
@@ -233,10 +246,7 @@ const API="https://cobra-pannel.onrender.com";
 let PLAN=null;
 
 function login(){
-fetch(API+"/keys",{headers:{
-user:user.value.trim(),
-pass:pass.value.trim()
-}})
+fetch(API+"/keys",{headers:{user:user.value.trim(),pass:pass.value.trim()}})
 .then(r=>{
 if(r.status===200){
 loginBox.style.display="none";
@@ -248,7 +258,7 @@ load();
 }
 
 function toggleMenu(){
-sidebar.style.left = sidebar.style.left==="0px" ? "-220px" : "0px";
+sidebar.style.left = sidebar.style.left==="0px" ? "-240px" : "0px";
 }
 
 function show(id){
@@ -262,7 +272,7 @@ toggleMenu();
 function logout(){
 panel.style.display="none";
 loginBox.style.display="flex";
-sidebar.style.left="-220px";
+sidebar.style.left="-240px";
 menuBtn.style.display="none";
 PLAN=null;
 }
@@ -270,14 +280,14 @@ PLAN=null;
 function openPopup(){planPopup.style.display="block";}
 function closePopup(){planPopup.style.display="none";}
 
-function selectPlan(p){
+function selectPlanUI(el,p){
 PLAN=p;
-let txt=p<1?(p*24)+"H":p+"DAY";
+document.querySelectorAll(".planBox").forEach(x=>x.classList.remove("active"));
+el.classList.add("active");
 
+let txt=p<1?(p*24)+"H":p+"DAY";
 if(gen.style.display!=="none") selectedPlanBox.innerText="PLAN: "+txt;
 if(custom.style.display!=="none") selectedPlanBox2.innerText="PLAN: "+txt;
-
-closePopup();
 }
 
 function load(){
