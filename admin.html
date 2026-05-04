@@ -1,99 +1,213 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>COBRA PANEL</title>
 
 <style>
-body{margin:0;font-family:Arial;background:#0f172a;color:#fff}
-.login{height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center}
-.login input,.login button{width:80%;padding:14px;margin:6px;border:none;border-radius:10px}
-.login button{background:#22c55e}
+body{
+margin:0;
+font-family:Arial;
+background:#0f172a;
+color:#fff;
+overflow-x:hidden;
+}
 
-.menuBtn{display:none;position:fixed;top:10px;left:10px}
-.sidebar{position:fixed;left:-220px;width:200px;height:100%;background:#111827;padding:10px;transition:.3s}
-.sidebar button{width:100%;padding:10px;margin:5px;background:#1f2937;color:#fff;border:none;border-radius:8px}
+/* LOGIN */
+.login{
+height:100vh;
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+}
+.login input{
+width:80%;
+padding:14px;
+margin:8px;
+border:none;
+border-radius:12px;
+}
+.login button{
+width:80%;
+padding:14px;
+border:none;
+border-radius:12px;
+background:#22c55e;
+color:#fff;
+}
 
-.panel{display:none}
-.card{background:#1e293b;margin:8px;padding:10px;border-radius:10px}
-.plan{padding:10px;background:#22c55e;margin:5px;border-radius:6px}
+/* MENU */
+.menuBtn{
+display:none;
+position:fixed;
+top:10px;
+left:10px;
+background:#111827;
+color:#fff;
+padding:8px;
+border:none;
+border-radius:8px;
+z-index:1000;
+}
+
+/* SIDEBAR */
+.sidebar{
+position:fixed;
+left:-230px;
+top:0;
+width:200px;
+height:100%;
+background:#111827;
+padding:10px;
+transition:.3s;
+z-index:999;
+}
+.sidebar button{
+width:100%;
+padding:12px;
+margin:5px;
+background:#1f2937;
+color:#fff;
+border:none;
+border-radius:10px;
+}
+
+/* PANEL */
+.panel{display:none;}
+.top{
+text-align:center;
+padding:15px;
+background:#111827;
+font-weight:bold;
+}
+
+.content{padding:10px;}
+
+.card{
+background:#1e293b;
+padding:12px;
+margin:8px;
+border-radius:12px;
+}
+
+/* BUTTON */
+button{
+padding:10px;
+border:none;
+border-radius:10px;
+margin:5px;
+}
+.green{background:#22c55e;}
+.red{background:#ef4444;}
+.blue{background:#3b82f6;}
+
+/* PLAN */
+.plan{
+padding:10px;
+background:#22c55e;
+margin:5px;
+border-radius:8px;
+text-align:center;
+}
+.plan:active{background:#16a34a;}
 </style>
 </head>
 
 <body>
 
+<!-- LOGIN -->
 <div class="login" id="loginBox">
 <input id="user" placeholder="USERNAME">
 <input id="pass" type="password" placeholder="PASSWORD">
 <button onclick="login()">LOGIN</button>
 </div>
 
+<!-- MENU BTN -->
 <button class="menuBtn" id="menuBtn" onclick="toggleMenu()">☰</button>
 
+<!-- SIDEBAR -->
 <div id="sidebar" class="sidebar">
 <button onclick="show('dash')">DASHBOARD</button>
-<button onclick="show('gen')">GENERATE</button>
-<button onclick="logout()">LOGOUT</button>
+<button onclick="show('gen')">GENERATE KEY</button>
+<button onclick="logout()" class="red">LOGOUT</button>
 </div>
 
+<!-- PANEL -->
 <div class="panel" id="panel">
 
+<div class="top">COBRA ADMIN</div>
+
+<div class="content">
+
+<!-- DASHBOARD -->
 <div id="dash">
 <h3>LIVE KEYS</h3>
-<button onclick="load()">REFRESH</button>
+<button class="blue" onclick="load()">REFRESH</button>
 <div id="list"></div>
 </div>
 
-<div id="gen" style="display:none">
+<!-- GENERATE -->
+<div id="gen" style="display:none;">
 <h3>SELECT PLAN</h3>
 
-<div onclick="setPlan('1H')" class="plan">1H</div>
-<div onclick="setPlan('3H')" class="plan">3H</div>
-<div onclick="setPlan('5H')" class="plan">5H</div>
-<div onclick="setPlan('12H')" class="plan">12H</div>
-<div onclick="setPlan('1DAY')" class="plan">1DAY</div>
-<div onclick="setPlan('7DAY')" class="plan">7DAY</div>
-<div onclick="setPlan('15DAY')" class="plan">15DAY</div>
-<div onclick="setPlan('30DAY')" class="plan">30DAY</div>
-<div onclick="setPlan('60DAY')" class="plan">60DAY</div>
+<div class="plan" onclick="setPlan('1H')">1H</div>
+<div class="plan" onclick="setPlan('3H')">3H</div>
+<div class="plan" onclick="setPlan('5H')">5H</div>
+<div class="plan" onclick="setPlan('12H')">12H</div>
+<div class="plan" onclick="setPlan('1DAY')">1DAY</div>
+<div class="plan" onclick="setPlan('7DAY')">7DAY</div>
+<div class="plan" onclick="setPlan('15DAY')">15DAY</div>
+<div class="plan" onclick="setPlan('30DAY')">30DAY</div>
+<div class="plan" onclick="setPlan('60DAY')">60DAY</div>
 
-<div id="p" class="card">PLAN: NONE</div>
+<div id="selectedPlan" class="card">PLAN: NONE</div>
 
-<input id="limit" placeholder="DEVICE LIMIT">
-<input id="custom" placeholder="CUSTOM KEY">
+<input id="limit" placeholder="DEVICE LIMIT (default 1)">
+<input id="custom" placeholder="CUSTOM KEY (optional)">
 
-<button onclick="gen()">GENERATE</button>
-<div id="out"></div>
+<button class="green" onclick="gen()">GENERATE KEY</button>
 
+<div id="out" class="card"></div>
 </div>
 
+</div>
 </div>
 
 <script>
+
 const API="https://cobra-pannel.onrender.com";
 
-function head(){
-return {user:user.value,pass:pass.value};
+function headers(){
+return {
+"user":user.value.trim(),
+"pass":pass.value.trim()
+};
 }
 
 let PLAN=null;
 
+// LOGIN
 function login(){
-fetch(API+"/keys",{headers:head()})
-.then(r=>{
-if(r.status===200){
+fetch(API+"/keys",{headers:headers()})
+.then(res=>{
+if(res.status===200){
 loginBox.style.display="none";
 panel.style.display="block";
 menuBtn.style.display="block";
 load();
-}else alert("wrong");
+}else{
+alert("WRONG LOGIN");
+}
 });
 }
 
+// MENU
 function toggleMenu(){
-sidebar.style.left=sidebar.style.left==="0px"?"-220px":"0px";
+sidebar.style.left = sidebar.style.left==="0px" ? "-230px" : "0px";
 }
 
+// SWITCH
 function show(id){
 dash.style.display="none";
 gen.style.display="none";
@@ -101,17 +215,27 @@ document.getElementById(id).style.display="block";
 toggleMenu();
 }
 
-function logout(){location.reload();}
-
-function setPlan(p){
-PLAN=p;
-document.getElementById("p").innerText="PLAN: "+p;
+// LOGOUT
+function logout(){
+location.reload();
 }
 
+// PLAN
+function setPlan(p){
+PLAN=p;
+selectedPlan.innerText="PLAN: "+p;
+}
+
+// GENERATE
 function gen(){
+if(!PLAN){
+alert("SELECT PLAN");
+return;
+}
+
 fetch(API+"/generate",{
 method:"POST",
-headers:{...head(),"Content-Type":"application/json"},
+headers:{...headers(),"Content-Type":"application/json"},
 body:JSON.stringify({
 plan:PLAN,
 deviceLimit:+limit.value||1,
@@ -120,38 +244,69 @@ customKey:custom.value
 })
 .then(r=>r.json())
 .then(d=>{
-out.innerHTML=d.key;
+out.innerHTML=d.key+"<br><button onclick='copyKey(\""+d.key+"\")'>COPY</button>";
 load();
 });
 }
 
+// LOAD KEYS
 function load(){
-fetch(API+"/keys",{headers:head()})
+fetch(API+"/keys",{headers:headers()})
 .then(r=>r.json())
-.then(d=>{
-list.innerHTML=d.map(k=>`
-<div class="card">
-${k.key}<br>
-${k.devices.length}/${k.deviceLimit}<br>
-${new Date(k.expiry).toLocaleString()}<br>
+.then(data=>{
+list.innerHTML=data.map(k=>{
+let exp=new Date(k.expiry);
+let status=Date.now()>k.expiry?"❌ EXPIRED":"✅ ACTIVE";
 
-<button onclick="del('${k.key}')">DEL</button>
-<button onclick="reset('${k.key}')">RESET</button>
-<button onclick="extend('${k.key}')">+7D</button>
+return `
+<div class="card">
+<b>${k.key}</b><br>
+Devices: ${k.devices.length}/${k.deviceLimit}<br>
+Expiry: ${exp.toLocaleString()}<br>
+Status: ${status}<br>
+
+<button onclick="copyKey('${k.key}')">COPY</button>
+<button class="blue" onclick="resetKey('${k.key}')">RESET</button>
+<button class="red" onclick="deleteKey('${k.key}')">DELETE</button>
+<button class="green" onclick="extendKey('${k.key}')">+7D</button>
+
 </div>
-`).join("");
+`;
+}).join("");
 });
 }
 
-function del(k){
-fetch(API+"/delete",{method:"POST",headers:{...head(),"Content-Type":"application/json"},body:JSON.stringify({key:k})}).then(load);
+// ACTIONS
+function deleteKey(k){
+fetch(API+"/delete",{
+method:"POST",
+headers:{...headers(),"Content-Type":"application/json"},
+body:JSON.stringify({key:k})
+}).then(load);
 }
-function reset(k){
-fetch(API+"/reset",{method:"POST",headers:{...head(),"Content-Type":"application/json"},body:JSON.stringify({key:k})}).then(load);
+
+function resetKey(k){
+fetch(API+"/reset",{
+method:"POST",
+headers:{...headers(),"Content-Type":"application/json"},
+body:JSON.stringify({key:k})
+}).then(load);
 }
-function extend(k){
-fetch(API+"/extend",{method:"POST",headers:{...head(),"Content-Type":"application/json"},body:JSON.stringify({key:k,days:7})}).then(load);
+
+function extendKey(k){
+fetch(API+"/extend",{
+method:"POST",
+headers:{...headers(),"Content-Type":"application/json"},
+body:JSON.stringify({key:k,days:7})
+}).then(load);
 }
+
+// COPY
+function copyKey(k){
+navigator.clipboard.writeText(k);
+alert("COPIED");
+}
+
 </script>
 
 </body>
