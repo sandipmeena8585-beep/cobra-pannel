@@ -35,25 +35,39 @@ background:#111827;color:white;padding:8px;border:none;border-radius:8px;
 /* PANEL */
 .panel{display:none;}
 .top{background:#111827;padding:15px;text-align:center;font-size:18px;}
-
 .content{padding:10px;margin-top:50px;}
-
 .card{background:#1e293b;margin:8px;padding:12px;border-radius:12px;}
 
-.plans{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
-.plan{padding:12px;border-radius:10px;background:#22c55e;text-align:center;}
-
-input{
-width:95%;padding:10px;margin:5px;border:none;border-radius:10px;
-}
-
-button{
-padding:10px;border:none;border-radius:10px;margin:5px;
-}
-
+/* INPUT + BTN */
+input{width:95%;padding:10px;margin:5px;border:none;border-radius:10px;}
+button{padding:10px;border:none;border-radius:10px;margin:5px;}
 .blue{background:#3b82f6;}
 .red{background:#ef4444;}
 .green{background:#22c55e;}
+
+/* POPUP */
+#planPopup{
+display:none;
+position:fixed;
+bottom:0;
+left:0;
+width:100%;
+background:#1e293b;
+padding:15px;
+border-radius:15px 15px 0 0;
+z-index:999;
+}
+.plans{
+display:grid;
+grid-template-columns:repeat(2,1fr);
+gap:10px;
+}
+.plan{
+padding:12px;
+border-radius:10px;
+background:#22c55e;
+text-align:center;
+}
 </style>
 
 </head>
@@ -90,18 +104,12 @@ padding:10px;border:none;border-radius:10px;margin:5px;
 <div id="list"></div>
 </div>
 
-<!-- GENERATE -->
+<!-- RANDOM -->
 <div id="gen" style="display:none;">
 <h3>🔑 RANDOM KEY</h3>
 
-<div class="plans">
-<div class="plan" onclick="setPlan(1/24)">1H</div>
-<div class="plan" onclick="setPlan(2/24)">2H</div>
-<div class="plan" onclick="setPlan(12/24)">12H</div>
-<div class="plan" onclick="setPlan(1)">1D</div>
-<div class="plan" onclick="setPlan(7)">7D</div>
-<div class="plan" onclick="setPlan(30)">30D</div>
-</div>
+<button class="green" onclick="openPopup()">SELECT PLAN</button>
+<div id="selectedPlanBox" class="card">Selected Plan: NONE</div>
 
 <input id="device" placeholder="Device limit (default 1)">
 <button class="green" onclick="genFinal()">GENERATE KEY</button>
@@ -113,11 +121,8 @@ padding:10px;border:none;border-radius:10px;margin:5px;
 <div id="custom" style="display:none;">
 <h3>✍️ CUSTOM KEY</h3>
 
-<div class="plans">
-<div class="plan" onclick="setPlan(1)">1D</div>
-<div class="plan" onclick="setPlan(7)">7D</div>
-<div class="plan" onclick="setPlan(30)">30D</div>
-</div>
+<button class="green" onclick="openPopup()">SELECT PLAN</button>
+<div id="selectedPlanBox2" class="card">Selected Plan: NONE</div>
 
 <input id="cdevice" placeholder="Device limit">
 <input id="ckey" placeholder="Enter custom key">
@@ -130,67 +135,106 @@ padding:10px;border:none;border-radius:10px;margin:5px;
 </div>
 </div>
 
+<!-- POPUP -->
+<div id="planPopup">
+
+<h3>Select Plan</h3>
+
+<div class="plans">
+<div class="plan" onclick="selectPlan(1/24)">1H</div>
+<div class="plan" onclick="selectPlan(2/24)">2H</div>
+<div class="plan" onclick="selectPlan(3/24)">3H</div>
+<div class="plan" onclick="selectPlan(5/24)">5H</div>
+<div class="plan" onclick="selectPlan(12/24)">12H</div>
+
+<div class="plan" onclick="selectPlan(1)">1D</div>
+<div class="plan" onclick="selectPlan(3)">3D</div>
+<div class="plan" onclick="selectPlan(7)">7D</div>
+<div class="plan" onclick="selectPlan(15)">15D</div>
+<div class="plan" onclick="selectPlan(30)">30D</div>
+</div>
+
+<button onclick="closePopup()" style="width:100%;margin-top:10px;background:#ef4444">
+Cancel
+</button>
+
+</div>
+
 <script>
 
 const API="https://cobra-pannel.onrender.com";
-let PLAN=1;
+let PLAN=null;
 
 // LOGIN
 function login(){
-fetch(API+"/keys",{
-headers:{
-"user":document.getElementById("user").value.trim(),
-"pass":document.getElementById("pass").value.trim()
+fetch(API+"/keys",{headers:{
+"user":user.value.trim(),
+"pass":pass.value.trim()
 }})
 .then(r=>{
 if(r.status===200){
-document.getElementById("login").style.display="none";
-document.getElementById("panel").style.display="block";
+login.style.display="none";
+panel.style.display="block";
 load();
-}else{
-alert("Login Failed");
-}
+}else alert("Login Failed");
 });
 }
 
 // MENU
 function toggleMenu(){
-let s=document.getElementById("sidebar");
-s.style.left = s.style.left==="0px" ? "-220px" : "0px";
+sidebar.style.left = sidebar.style.left==="0px" ? "-220px" : "0px";
 }
 
 // SWITCH
 function show(id){
-document.getElementById("dash").style.display="none";
-document.getElementById("gen").style.display="none";
-document.getElementById("custom").style.display="none";
+dash.style.display="none";
+gen.style.display="none";
+custom.style.display="none";
 document.getElementById(id).style.display="block";
 toggleMenu();
 }
 
-// PLAN
-function setPlan(p){
+// POPUP
+function openPopup(){
+planPopup.style.display="block";
+}
+function closePopup(){
+planPopup.style.display="none";
+}
+
+// SELECT PLAN
+function selectPlan(p){
 PLAN=p;
-alert("Plan Selected");
+
+let txt = p<1 ? (p*24)+" Hour" : p+" Day";
+
+if(gen.style.display!=="none"){
+selectedPlanBox.innerText="Selected Plan: "+txt;
+}
+if(custom.style.display!=="none"){
+selectedPlanBox2.innerText="Selected Plan: "+txt;
+}
+
+closePopup();
 }
 
 // LOAD
 function load(){
 fetch(API+"/keys",{headers:{
-"user":document.getElementById("user").value.trim(),
-"pass":document.getElementById("pass").value.trim()
+"user":user.value.trim(),
+"pass":pass.value.trim()
 }})
 .then(r=>r.json())
 .then(data=>{
-document.getElementById("list").innerHTML=data.map(k=>{
+list.innerHTML=data.map(k=>{
 let exp=new Date(k.expiry);
 let status=new Date()>exp?"❌ EXPIRED":"✅ ACTIVE";
 
 return `<div class="card">
 <b>${k.key}</b><br>
-Devices: ${k.devices.length}/${k.deviceLimit}<br>
-Expiry: ${exp.toLocaleString()}<br>
-Status: ${status}<br>
+${k.devices.length}/${k.deviceLimit}<br>
+${exp.toLocaleString()}<br>
+${status}<br>
 
 <button onclick="copyKey('${k.key}')">COPY</button>
 <button class="blue" onclick="resetKey('${k.key}')">Reset</button>
@@ -200,46 +244,47 @@ Status: ${status}<br>
 });
 }
 
-// RANDOM GENERATE
+// GENERATE
 function genFinal(){
-let d=+document.getElementById("device").value || 1;
+if(!PLAN){alert("Select Plan");return;}
+let d=+device.value||1;
 
 fetch(API+"/generate",{
 method:"POST",
 headers:{
-"user":document.getElementById("user").value.trim(),
-"pass":document.getElementById("pass").value.trim(),
+"user":user.value.trim(),
+"pass":pass.value.trim(),
 "Content-Type":"application/json"
 },
 body:JSON.stringify({days:PLAN,deviceLimit:d})
 })
 .then(r=>r.json())
 .then(d=>{
-document.getElementById("genOutput").innerHTML=
-`<div class="card">${d.key}<br>
+genOutput.innerHTML=`<div class="card">${d.key}<br>
 <button onclick="copyKey('${d.key}')">COPY</button></div>`;
 });
 }
 
-// CUSTOM GENERATE
+// CUSTOM
 function customFinal(){
+if(!PLAN){alert("Select Plan");return;}
+
 fetch(API+"/generate",{
 method:"POST",
 headers:{
-"user":document.getElementById("user").value.trim(),
-"pass":document.getElementById("pass").value.trim(),
+"user":user.value.trim(),
+"pass":pass.value.trim(),
 "Content-Type":"application/json"
 },
 body:JSON.stringify({
 days:PLAN,
-deviceLimit:+document.getElementById("cdevice").value || 1,
-customKey:document.getElementById("ckey").value
+deviceLimit:+cdevice.value||1,
+customKey:ckey.value
 })
 })
 .then(r=>r.json())
 .then(d=>{
-document.getElementById("customOutput").innerHTML=
-`<div class="card">${d.key}<br>
+customOutput.innerHTML=`<div class="card">${d.key}<br>
 <button onclick="copyKey('${d.key}')">COPY</button></div>`;
 });
 }
@@ -249,8 +294,8 @@ function delKey(k){
 fetch(API+"/delete",{
 method:"POST",
 headers:{
-"user":document.getElementById("user").value.trim(),
-"pass":document.getElementById("pass").value.trim(),
+"user":user.value.trim(),
+"pass":pass.value.trim(),
 "Content-Type":"application/json"
 },
 body:JSON.stringify({key:k})
@@ -262,8 +307,8 @@ function resetKey(k){
 fetch(API+"/reset",{
 method:"POST",
 headers:{
-"user":document.getElementById("user").value.trim(),
-"pass":document.getElementById("pass").value.trim(),
+"user":user.value.trim(),
+"pass":pass.value.trim(),
 "Content-Type":"application/json"
 },
 body:JSON.stringify({key:k})
