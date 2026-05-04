@@ -1,9 +1,13 @@
 const express = require("express");
 const fs = require("fs");
 const crypto = require("crypto");
+const path = require("path");
 
 const app = express();
 app.use(express.json());
+
+// ===== STATIC FILE (ADMIN PANEL) =====
+app.use(express.static(__dirname));
 
 const PORT = process.env.PORT || 3000;
 const DB = "data.json";
@@ -17,6 +21,7 @@ function load(){
   if(!fs.existsSync(DB)) return [];
   return JSON.parse(fs.readFileSync(DB));
 }
+
 function save(data){
   fs.writeFileSync(DB, JSON.stringify(data,null,2));
 }
@@ -34,6 +39,11 @@ function auth(req,res,next){
     res.status(401).send("Unauthorized");
   }
 }
+
+// ===== ROOT → ADMIN PANEL =====
+app.get("/", (req,res)=>{
+  res.sendFile(path.join(__dirname,"admin.html"));
+});
 
 // ===== GENERATE KEY =====
 app.post("/generate", auth,(req,res)=>{
@@ -56,7 +66,7 @@ app.post("/generate", auth,(req,res)=>{
   res.json({key});
 });
 
-// ===== CONNECT (MOD ONLY) =====
+// ===== CONNECT (MOD USE) =====
 app.post("/connect",(req,res)=>{
   const { key, deviceId } = req.body;
 
@@ -97,16 +107,17 @@ app.post("/delete", auth,(req,res)=>{
 app.post("/reset", auth,(req,res)=>{
   let data = load();
   let u = data.find(x=>x.key === req.body.key);
+
   if(u){
     u.devices = [];
     save(data);
     return res.json({reset:true});
   }
+
   res.json({reset:false});
 });
 
-app.get("/",(req,res)=>{
-  res.send("COBRA PANEL RUNNING 🔥");
+// ===== START =====
+app.listen(PORT,()=>{
+  console.log("🔥 COBRA PANEL RUNNING");
 });
-
-app.listen(PORT,()=>console.log("RUNNING"));
